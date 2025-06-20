@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Sistem Klasifikasi Penyakit Mata</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" integrity="sha512-1ycn6IcaQQ40JuKmWvNisMioyGz5hS5d5kR1zPjWbN6a5b5yC5m6W5d5+01N9d/nQ/L6a5t5+m5e7s5+y5c5f5+t5" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #e0f7fa; /* Light cyan background */
+            padding-top: 50px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 900px;
+            background-color: #ffffff;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+            opacity: 0;
+            animation: fadeIn 1s forwards;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .header-title {
+            color: #00796b;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+        .subtitle {
+            color: #546e7a;
+            margin-bottom: 40px;
+            font-weight: 300;
+        }
+        .upload-section {
+            border: 3px dashed #00796b;
+            padding: 40px;
+            border-radius: 10px;
+            text-align: center;
+            margin-bottom: 30px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        .upload-section:hover {
+            background-color: #e0f2f7;
+        }
+        .upload-section input[type="file"] {
+            display: none;
+        }
+        .upload-icon {
+            color: #00796b;
+            margin-bottom: 15px;
+        }
+        .upload-text {
+            color: #37474f;
+            font-weight: 400;
+        }
+        .btn-primary {
+            background-color: #00796b;
+            border-color: #00796b;
+            transition: background-color 0.3s ease, border-color 0.3s ease;
+        }
+        .btn-primary:hover {
+            background-color: #004d40;
+            border-color: #004d40;
+        }
+        .image-display-area {
+            display: flex;
+            justify-content: space-around;
+            align-items: flex-start;
+            flex-wrap: wrap; /* Untuk tampilan responsif */
+            margin-top: 30px;
+        }
+        .image-card {
+            background-color: #f0f4c3; /* Light yellow-green */
+            border: 1px solid #cddc39;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px;
+            text-align: center;
+            flex: 1 1 45%; /* Menyesuaikan ukuran di grid */
+            box-shadow: 0 2px 5px rgba(0,0,0,0.08);
+        }
+        .image-card img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+        .result-section {
+            margin-top: 40px;
+            padding: 30px;
+            background-color: #e8f5e9;
+            border-radius: 10px;
+            border: 1px solid #a5d6a7;
+            animation: fadeIn 1s forwards;
+        }
+        .prediction-text {
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: #2e7d32;
+            margin-bottom: 15px;
+        }
+        .filename-text {
+            color: #78909c;
+            font-size: 0.9rem;
+        }
+        .error-message {
+            color: #d32f2f;
+            background-color: #ffebee;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #ef9a9a;
+            margin-top: 20px;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-center header-title">Sistem Klasifikasi Penyakit Mata</h1>
+        <p class="text-center subtitle">Unggah gambar mata untuk memprediksi jenis penyakitnya menggunakan GLCM dan Machine Learning.</p>
+
+        <form method="post" enctype="multipart/form-data" class="mt-4">
+            <div class="form-group mb-4">
+                <label for="preprocessMethod" class="upload-text">Pilih Metode Pre-processing Tambahan:</label>
+                <select class="form-control" id="preprocessMethod" name="preprocess_method">
+                    <option value="clahe" {% if selected_method == 'clahe' %}selected{% endif %}>CLAHE (Contrast Enhancement)</option>
+                    <option value="gaussian_blur" {% if selected_method == 'gaussian_blur' %}selected{% endif %}>Gaussian Blur (Noise Reduction)</option>
+                    <option value="median_filter" {% if selected_method == 'median_filter' %}selected{% endif %}>Median Filter (Noise Reduction)</option>
+                    <option value="none" {% if selected_method == 'none' %}selected{% endif %}>Hanya Grayscale</option>
+                </select>
+            </div>
+
+            <label for="fileUpload" class="upload-section d-flex flex-column align-items-center justify-content-center">
+                <i class="fas fa-cloud-upload-alt fa-4x upload-icon"></i>
+                <p class="mb-0 upload-text">Seret & Jatuhkan gambar di sini atau <span class="text-primary font-weight-bold">Klik untuk Memilih File</span></p>
+                <input type="file" name="file" id="fileUpload" accept="image/*">
+            </label>
+            <button type="submit" class="btn btn-primary btn-lg btn-block">
+                <i class="fas fa-magic mr-2"></i> Unggah dan Klasifikasikan
+            </button>
+        </form>
+
+        {% if message %}
+        <div class="error-message mt-4 text-center">
+            <i class="fas fa-exclamation-triangle mr-2"></i> {{ message }}
+        </div>
+        {% endif %}
+
+        {% if prediction %}
+        <div class="result-section text-center">
+            <h2>Hasil Prediksi:</h2>
+            <p class="prediction-text">
+                <i class="fas fa-eye-medical mr-2"></i> {{ prediction }}
+            </p>
+            {% if filename %}
+            <div class="image-display-area">
+                <div class="image-card">
+                    <h5>Gambar Asli</h5>
+                    <img src="{{ url_for('uploaded_file', filename=filename) }}" alt="Uploaded Original Image">
+                </div>
+                {% if processed_image_path %}
+                    <div class="image-card">
+                    <h5>Gambar Setelah Pre-processing</h5>
+                     <img src="{{ url_for('uploaded_file', filename=processed_image_path) }}" alt="Uploaded Processed Image">
+                     </div>
+                {% endif %}
+            </div>
+            <p class="filename-text mt-3">Nama File: {{ filename }}</p>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+        // JavaScript untuk menampilkan nama file yang dipilih
+        document.getElementById('fileUpload').addEventListener('change', function() {
+            var fileName = this.files[0] ? this.files[0].name : "Klik untuk Memilih File";
+            var uploadTextElement = this.closest('label').querySelector('.upload-text');
+            uploadTextElement.innerHTML = 'File dipilih: <span class="text-primary font-weight-bold">' + fileName + '</span>';
+        });
+    </script>
+</body>
+</html>

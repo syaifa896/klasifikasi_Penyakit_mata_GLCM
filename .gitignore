@@ -1,0 +1,27 @@
+# Virtual environment
+venv/
+
+# Compiled Python files
+__pycache__/
+*.pyc
+
+# Machine learning model and scaler
+*.pkl
+*.json # Hati-hati jika ada file .json lain yang perlu diunggah!
+       # Jika class_names.json perlu diunggah, hapus baris ini dan
+       # biarkan joblib.dump() dan json.dump() tetap menyimpan di root folder
+       # atau spesifikasikan .json yang ingin diabaikan, misal: *.log.json
+
+# Uploads folder (where user-uploaded images are stored)
+uploads/
+
+# IDE specific files
+.vscode/
+
+# Operating System files
+.DS_Store
+Thumbs.db
+
+# Python specific ignores
+*.egg-info/
+.ipynb_checkpoints/ # If you use Jupyter notebooks
