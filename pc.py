@@ -1,6 +1,3 @@
-# train_model.py
-
-# 1. Import Library yang Dibutuhkan
 import cv2
 import numpy as np
 import os

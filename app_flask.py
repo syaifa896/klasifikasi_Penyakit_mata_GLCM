@@ -1,5 +1,3 @@
-# app.py
-
 from flask import Flask, request, render_template, send_from_directory
 import cv2
 import numpy as np
