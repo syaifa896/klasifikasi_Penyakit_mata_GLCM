@@ -1,26 +1,18 @@
 import cv2
+from flask import app
 import numpy as np
 import os
 from skimage.feature import graycomatrix, graycoprops
 from sklearn.model_selection import train_test_split
 from sklearn.svm import SVC
 from sklearn.metrics import classification_report, accuracy_score
-from sklearn.preprocessing import StandardScaler # Tambahkan ini untuk Feature Scaling
+from sklearn.preprocessing import StandardScaler
 import matplotlib.pyplot as plt
-import joblib # Untuk menyimpan dan memuat model
-import json # Untuk menyimpan nama-nama kelas
+import joblib
+import json
 
-# 2. Fungsi untuk Pre-processing Citra (Materi Tambahan #1: Filtering/Enhancement)
-def preprocess_image(image_path, target_size=(256, 256), method='clahe'):
-    """
-    Melakukan pre-processing pada citra.
-    Args:
-        image_path (str): Path lengkap menuju file citra.
-        target_size (tuple): Ukuran target (lebar, tinggi) untuk resize citra.
-        method (str): Metode pre-processing tambahan ('gaussian_blur', 'median_filter', 'clahe', atau 'none').
-    Returns:
-        numpy.ndarray: Citra yang sudah diproses (grayscale), atau None jika gagal membaca citra.
-    """
+def preprocess_image(image_path, target_size=(256, 256)): # Parameter 'method' dihilangkan
+   
     img = cv2.imread(image_path)
     if img is None:
         return None
@@ -28,31 +20,10 @@ def preprocess_image(image_path, target_size=(256, 256), method='clahe'):
     img = cv2.resize(img, target_size)
     gray_img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
-    processed_img = gray_img
-    if method == 'gaussian_blur':
-        processed_img = cv2.GaussianBlur(gray_img, (5, 5), 0)
-    elif method == 'median_filter':
-        processed_img = cv2.medianBlur(gray_img, 5)
-    elif method == 'clahe':
-        clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8,8))
-        processed_img = clahe.apply(gray_img)
-    elif method == 'none': # Opsi jika hanya ingin grayscale
-        processed_img = gray_img
+    return gray_img # Langsung mengembalikan gambar grayscale
 
-    return processed_img
-
-# 3. Fungsi untuk Ekstraksi Fitur GLCM
 def extract_glcm_features(image_gray, distances=[1], angles=[0, np.pi/4, np.pi/2, 3*np.pi/4], levels=256):
-    """
-    Mengekstraksi fitur GLCM dari citra grayscale.
-    Args:
-        image_gray (numpy.ndarray): Citra grayscale.
-        distances (list): Jarak antar piksel untuk GLCM.
-        angles (list): Sudut untuk GLCM dalam radian.
-        levels (int): Jumlah gray level dalam citra.
-    Returns:
-        numpy.ndarray: Array 1D dari fitur-fitur GLCM yang dihitung.
-    """
+  
     image_gray = image_gray.astype(int)
 
     glcm = graycomatrix(image_gray,
@@ -69,13 +40,9 @@ def extract_glcm_features(image_gray, distances=[1], angles=[0, np.pi/4, np.pi/2
 
     return np.array(features)
 
-# 4. Fungsi Utama untuk Memuat Dataset dan Ekstraksi Fitur
-def load_dataset_and_extract_features(dataset_path, pre_process_method='clahe'):
-    """
-    Memuat dataset citra dari folder, melakukan pre-processing, dan mengekstraksi fitur GLCM.
-    Returns:
-        tuple: (fitur_data, label_data, class_names)
-    """
+# 4. Fungsi Utama untuk Memuat Dataset dan Ekstraksi Fitur (Parameter 'pre_process_method' dihilangkan)
+def load_dataset_and_extract_features(dataset_path):
+    
     all_features = []
     all_labels = []
     class_names = sorted([d for d in os.listdir(dataset_path) if os.path.isdir(os.path.join(dataset_path, d))])
@@ -88,7 +55,7 @@ def load_dataset_and_extract_features(dataset_path, pre_process_method='clahe'):
         for image_name in os.listdir(class_path):
             image_path = os.path.join(class_path, image_name)
             if image_path.lower().endswith(('.png', '.jpg', '.jpeg', '.bmp', '.tiff')):
-                processed_img = preprocess_image(image_path, method=pre_process_method)
+                processed_img = preprocess_image(image_path) # Pemanggilan tanpa parameter method
                 if processed_img is not None:
                     glcm_features = extract_glcm_features(processed_img)
                     all_features.append(glcm_features)
@@ -100,14 +67,11 @@ def load_dataset_and_extract_features(dataset_path, pre_process_method='clahe'):
 
 # 5. Eksekusi Utama Program Pelatihan
 if __name__ == "__main__":
-   
-    dataset_folder = 'D:\SYAIFATURROHMAN\SMT 6\TUGAS\PENGOLAHAN CITRA\PRAKTIKUM\PC app\dataset2'
-
-    # Pilih metode pre-processing untuk training (harus sama dengan yang digunakan di app.py)
-    selected_pre_process_method = 'clahe'
+    app.run(debug=True, port=5001)
+    dataset_folder = 'D:\SYAIFATURROHMAN\SMT 6\TUGAS\PENGOLAHAN CITRA\PRAKTIKUM\PC app\dataset2' 
 
     print("--- Memulai Proses Pengumpulan Data dan Ekstraksi Fitur ---")
-    X, y, class_names = load_dataset_and_extract_features(dataset_folder, pre_process_method=selected_pre_process_method)
+    X, y, class_names = load_dataset_and_extract_features(dataset_folder) # Pemanggilan tanpa parameter method
 
     if X.size == 0:
         print("\n[ERROR] Tidak ada fitur yang diekstraksi. Pastikan path dataset benar.")
@@ -124,7 +88,7 @@ if __name__ == "__main__":
         print(f"Jumlah data training: {len(X_train)} sampel")
         print(f"Jumlah data testing: {len(X_test)} sampel")
 
-        # 7. Feature Scaling (PENTING untuk SVM dan meningkatkan akurasi)
+        # 7. Feature Scaling
         print("\n--- Melakukan Feature Scaling ---")
         scaler = StandardScaler()
         X_train_scaled = scaler.fit_transform(X_train)
@@ -133,7 +97,7 @@ if __name__ == "__main__":
 
         # 8. Latih Model Klasifikasi (SVC)
         print("\n--- Melatih Model Klasifikasi ---")
-        model = SVC(kernel='linear', random_state=42) # Bisa coba 'rbf' atau classifier lain
+        model = SVC(kernel='linear', random_state=42)
         model.fit(X_train_scaled, y_train)
         print("Model klasifikasi berhasil dilatih.")
 
@@ -149,11 +113,11 @@ if __name__ == "__main__":
 
         # 10. Menyimpan Model dan Scaler serta Nama Kelas
         model_filename = 'klasifikasi_mata_model.pkl'
-        scaler_filename = 'scaler_for_glcm.pkl' # Simpan scaler juga!
+        scaler_filename = 'scaler_for_glcm.pkl'
         class_names_filename = 'class_names.json'
 
         joblib.dump(model, model_filename)
-        joblib.dump(scaler, scaler_filename) # Simpan scaler
+        joblib.dump(scaler, scaler_filename)
         with open(class_names_filename, 'w') as f:
             json.dump(class_names, f)
 
@@ -161,8 +125,8 @@ if __name__ == "__main__":
         print(f"Scaler berhasil disimpan sebagai '{scaler_filename}'")
         print(f"Nama kelas berhasil disimpan sebagai '{class_names_filename}'")
 
-        # 11. (Opsional) Visualisasi Contoh Citra dan Hasil Pre-processing
-        print("\n--- Visualisasi Contoh Citra dan Hasil Pre-processing ---")
+        # 11. (Opsional) Visualisasi Contoh Citra (Hanya Original vs Grayscale)
+        print("\n--- Visualisasi Contoh Citra ---")
         if len(class_names) > 0:
             sample_class_path = os.path.join(dataset_folder, class_names[0])
             if os.path.exists(sample_class_path) and len(os.listdir(sample_class_path)) > 0:
@@ -172,7 +136,7 @@ if __name__ == "__main__":
                 original_img_color = cv2.imread(sample_image_path)
                 if original_img_color is not None:
                     original_img_resized = cv2.resize(original_img_color, (256, 256))
-                    processed_sample_img = preprocess_image(sample_image_path, method=selected_pre_process_method)
+                    processed_sample_img = preprocess_image(sample_image_path) # Pemanggilan tanpa parameter method
 
                     if processed_sample_img is not None:
                         plt.figure(figsize=(12, 6))
@@ -183,7 +147,7 @@ if __name__ == "__main__":
 
                         plt.subplot(1, 2, 2)
                         plt.imshow(processed_sample_img, cmap='gray')
-                        plt.title(f"Citra Setelah {selected_pre_process_method.replace('_', ' ').title()}")
+                        plt.title("Citra Setelah Grayscale") # Judul diubah
                         plt.axis('off')
                         plt.show()
                     else:

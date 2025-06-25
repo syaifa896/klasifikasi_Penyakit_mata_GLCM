@@ -11,7 +11,7 @@
     <style>
         body {
             font-family: 'Poppins', sans-serif;
-            background-color: #e0f7fa; /* Light cyan background */
+            background-color: #e0f7fa;
             padding-top: 50px;
             display: flex;
             justify-content: center;
@@ -77,17 +77,17 @@
             display: flex;
             justify-content: space-around;
             align-items: flex-start;
-            flex-wrap: wrap; /* Untuk tampilan responsif */
+            flex-wrap: wrap;
             margin-top: 30px;
         }
         .image-card {
-            background-color: #f0f4c3; /* Light yellow-green */
+            background-color: #f0f4c3;
             border: 1px solid #cddc39;
             border-radius: 8px;
             padding: 15px;
             margin: 10px;
             text-align: center;
-            flex: 1 1 45%; /* Menyesuaikan ukuran di grid */
+            flex: 1 1 45%;
             box-shadow: 0 2px 5px rgba(0,0,0,0.08);
         }
         .image-card img {
@@ -131,16 +131,6 @@
         <p class="text-center subtitle">Unggah gambar mata untuk memprediksi jenis penyakitnya menggunakan GLCM dan Machine Learning.</p>
 
         <form method="post" enctype="multipart/form-data" class="mt-4">
-            <div class="form-group mb-4">
-                <label for="preprocessMethod" class="upload-text">Pilih Metode Pre-processing Tambahan:</label>
-                <select class="form-control" id="preprocessMethod" name="preprocess_method">
-                    <option value="clahe" {% if selected_method == 'clahe' %}selected{% endif %}>CLAHE (Contrast Enhancement)</option>
-                    <option value="gaussian_blur" {% if selected_method == 'gaussian_blur' %}selected{% endif %}>Gaussian Blur (Noise Reduction)</option>
-                    <option value="median_filter" {% if selected_method == 'median_filter' %}selected{% endif %}>Median Filter (Noise Reduction)</option>
-                    <option value="none" {% if selected_method == 'none' %}selected{% endif %}>Hanya Grayscale</option>
-                </select>
-            </div>
-
             <label for="fileUpload" class="upload-section d-flex flex-column align-items-center justify-content-center">
                 <i class="fas fa-cloud-upload-alt fa-4x upload-icon"></i>
                 <p class="mb-0 upload-text">Seret & Jatuhkan gambar di sini atau <span class="text-primary font-weight-bold">Klik untuk Memilih File</span></p>
@@ -170,10 +160,9 @@
                     <img src="{{ url_for('uploaded_file', filename=filename) }}" alt="Uploaded Original Image">
                 </div>
                 {% if processed_image_path %}
-                    <div class="image-card">
-                    <h5>Gambar Setelah Pre-processing</h5>
-                     <img src="{{ url_for('uploaded_file', filename=processed_image_path) }}" alt="Uploaded Processed Image">
-                     </div>
+                <div class="image-card">
+                    <h5>Gambar Setelah Grayscale</h5> <img src="{{ url_for('uploaded_file', filename=processed_image_path) }}" alt="Uploaded Processed Image">
+                </div>
                 {% endif %}
             </div>
             <p class="filename-text mt-3">Nama File: {{ filename }}</p>
@@ -186,7 +175,6 @@
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
     <script>
-        // JavaScript untuk menampilkan nama file yang dipilih
         document.getElementById('fileUpload').addEventListener('change', function() {
             var fileName = this.files[0] ? this.files[0].name : "Klik untuk Memilih File";
             var uploadTextElement = this.closest('label').querySelector('.upload-text');
