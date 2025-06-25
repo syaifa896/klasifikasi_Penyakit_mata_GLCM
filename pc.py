@@ -67,7 +67,7 @@ def load_dataset_and_extract_features(dataset_path):
 
 # 5. Eksekusi Utama Program Pelatihan
 if __name__ == "__main__":
-    app.run(debug=True, port=5001)
+
     dataset_folder = 'D:\SYAIFATURROHMAN\SMT 6\TUGAS\PENGOLAHAN CITRA\PRAKTIKUM\PC app\dataset2' 
 
     print("--- Memulai Proses Pengumpulan Data dan Ekstraksi Fitur ---")
